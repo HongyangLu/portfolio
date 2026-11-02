@@ -67,48 +67,8 @@ function syncMusic() {
   musicFadeFrame = requestAnimationFrame(fade);
 }
 async function startMusic() {
-  const AudioEngine = window.AudioContext || window.webkitAudioContext;
-  if (!AudioEngine) { music.play().catch(syncMusic); return; }
-  if (!musicContext) {
-    musicContext = new AudioEngine();
-    musicGain = musicContext.createGain();
-    musicGain.gain.value = music.volume;
-    musicGain.connect(musicContext.destination);
-  }
-  try {
-    await musicContext.resume();
-    if (musicSource || musicLoading) return;
-    musicLoading = true;
-    const response = await fetch(music.getAttribute('src'));
-    if (!response.ok) throw new Error('Music unavailable');
-    const decoded = await musicContext.decodeAudioData(await response.arrayBuffer());
-    // Bake a two-second equal-power tail/head overlap into a gapless PCM loop.
-    const fade = Math.min(Math.round(decoded.sampleRate * 2), Math.floor(decoded.length / 4));
-    const length = decoded.length - fade;
-    const seamless = musicContext.createBuffer(decoded.numberOfChannels, length, decoded.sampleRate);
-    for (let channel=0; channel<decoded.numberOfChannels; channel++) {
-      const input = decoded.getChannelData(channel);
-      const output = seamless.getChannelData(channel);
-      const middle = decoded.length - fade * 2;
-      output.set(input.subarray(fade, decoded.length-fade));
-      for (let i=0; i<fade; i++) {
-        const phase = i / (fade-1) * Math.PI/2;
-        output[middle+i] = input[decoded.length-fade+i]*Math.cos(phase) + input[i]*Math.sin(phase);
-      }
-    }
-    musicSource = musicContext.createBufferSource();
-    musicSource.buffer = seamless;
-    musicSource.loop = true;
-    musicSource.connect(musicGain);
-    musicStartedAt = musicContext.currentTime;
-    musicSource.start();
-    musicPlaying = true;
-  } catch {
-    music.play().catch(() => {});
-  } finally {
-    musicLoading = false;
-    syncMusic();
-  }
+  try { await music.play(); } catch {}
+  syncMusic();
 }
 ['play', 'pause', 'volumechange'].forEach(event => music.addEventListener(event, syncMusic));
 soundToggle.addEventListener('click', () => {
@@ -343,7 +303,7 @@ if (projectFilm) {
  ['play', 'pause', 'ended', 'emptied', 'error'].forEach(event => projectFilm.addEventListener(event, updateDucking));
 }
 
-(()=>{const documents={"script":{"title":"Shaped Emotion / 剧本","first":1,"pages":["assets/lab-docs/script/page-1.jpg","assets/lab-docs/script/page-2.jpg","assets/lab-docs/script/page-3.jpg","assets/lab-docs/script/page-4.jpg","assets/lab-docs/script/page-5.jpg","assets/lab-docs/script/page-6.jpg"]},"initial":{"title":"Shaped Emotion / 初版分镜","first":1,"pages":["assets/lab-docs/initial/page-1.jpg","assets/lab-docs/initial/page-2.jpg","assets/lab-docs/initial/page-3.jpg","assets/lab-docs/initial/page-4.jpg","assets/lab-docs/initial/page-5.jpg","assets/lab-docs/initial/page-6.jpg","assets/lab-docs/initial/page-7.jpg"]},"revised":{"title":"Shaped Emotion / 后期修订分镜","first":7,"pages":["assets/lab-docs/revised/page-07.jpg","assets/lab-docs/revised/page-08.jpg","assets/lab-docs/revised/page-09.jpg","assets/lab-docs/revised/page-10.jpg","assets/lab-docs/revised/page-11.jpg","assets/lab-docs/revised/page-12.jpg","assets/lab-docs/revised/page-13.jpg","assets/lab-docs/revised/page-14.jpg","assets/lab-docs/revised/page-15.jpg","assets/lab-docs/revised/page-16.jpg","assets/lab-docs/revised/page-17.jpg"]},"intimacy-script":{"title":"Intimacy Error-Free / 剧本","first":1,"pages":["assets/intimacy-docs/script/page-1.jpg","assets/intimacy-docs/script/page-2.jpg","assets/intimacy-docs/script/page-3.jpg","assets/intimacy-docs/script/page-4.jpg","assets/intimacy-docs/script/page-5.jpg","assets/intimacy-docs/script/page-6.jpg","assets/intimacy-docs/script/page-7.jpg","assets/intimacy-docs/script/page-8.jpg"]},"intimacy-storyboard":{"title":"Intimacy Error-Free / 分镜故事板","first":1,"pages":["assets/intimacy-docs/storyboard/page-01.jpg","assets/intimacy-docs/storyboard/page-02.jpg","assets/intimacy-docs/storyboard/page-03.jpg","assets/intimacy-docs/storyboard/page-04.jpg","assets/intimacy-docs/storyboard/page-05.jpg","assets/intimacy-docs/storyboard/page-06.jpg","assets/intimacy-docs/storyboard/page-07.jpg","assets/intimacy-docs/storyboard/page-08.jpg","assets/intimacy-docs/storyboard/page-09.jpg","assets/intimacy-docs/storyboard/page-10.jpg","assets/intimacy-docs/storyboard/page-11.jpg","assets/intimacy-docs/storyboard/page-12.jpg","assets/intimacy-docs/storyboard/page-13.jpg"]}};const lab=document.getElementById('experiments'),reader=lab.querySelector('.lab-document-reader'),pages=reader.querySelector('.lab-document-pages');function closeReader(){reader.hidden=true;}lab.querySelectorAll('[data-lab-document]').forEach(button=>button.addEventListener('click',()=>{const doc=documents[button.dataset.labDocument];reader.querySelector('.lab-document-title').textContent=doc.title;pages.replaceChildren(...doc.pages.map((src,i)=>{const img=document.createElement('img');img.src=src;img.alt=doc.title+' / 原文件第 '+(doc.first+i)+' 页';img.loading=i?'lazy':'eager';return img;}));reader.hidden=false;pages.scrollTop=0;}));reader.querySelector('.lab-document-back').addEventListener('click',closeReader);lab.querySelectorAll('[data-lab-section]').forEach(b=>b.addEventListener('click',closeReader));lab.addEventListener('close',closeReader);lab.addEventListener('cancel',e=>{if(!reader.hidden){e.preventDefault();closeReader();}});})();
+(()=>{const documents={"script":{"title":"Shaped Emotion / 剧本","first":1,"pages":["assets/lab-docs/script/page-1.webp","assets/lab-docs/script/page-2.webp","assets/lab-docs/script/page-3.webp","assets/lab-docs/script/page-4.webp","assets/lab-docs/script/page-5.webp","assets/lab-docs/script/page-6.webp"]},"initial":{"title":"Shaped Emotion / 初版分镜","first":1,"pages":["assets/lab-docs/initial/page-1.webp","assets/lab-docs/initial/page-2.webp","assets/lab-docs/initial/page-3.webp","assets/lab-docs/initial/page-4.webp","assets/lab-docs/initial/page-5.webp","assets/lab-docs/initial/page-6.webp","assets/lab-docs/initial/page-7.webp"]},"revised":{"title":"Shaped Emotion / 后期修订分镜","first":7,"pages":["assets/lab-docs/revised/page-07.webp","assets/lab-docs/revised/page-08.webp","assets/lab-docs/revised/page-09.webp","assets/lab-docs/revised/page-10.webp","assets/lab-docs/revised/page-11.webp","assets/lab-docs/revised/page-12.webp","assets/lab-docs/revised/page-13.webp","assets/lab-docs/revised/page-14.webp","assets/lab-docs/revised/page-15.webp","assets/lab-docs/revised/page-16.webp","assets/lab-docs/revised/page-17.webp"]},"intimacy-script":{"title":"Intimacy Error-Free / 剧本","first":1,"pages":["assets/intimacy-docs/script/page-1.webp","assets/intimacy-docs/script/page-2.webp","assets/intimacy-docs/script/page-3.webp","assets/intimacy-docs/script/page-4.webp","assets/intimacy-docs/script/page-5.webp","assets/intimacy-docs/script/page-6.webp","assets/intimacy-docs/script/page-7.webp","assets/intimacy-docs/script/page-8.webp"]},"intimacy-storyboard":{"title":"Intimacy Error-Free / 分镜故事板","first":1,"pages":["assets/intimacy-docs/storyboard/page-01.webp","assets/intimacy-docs/storyboard/page-02.webp","assets/intimacy-docs/storyboard/page-03.webp","assets/intimacy-docs/storyboard/page-04.webp","assets/intimacy-docs/storyboard/page-05.webp","assets/intimacy-docs/storyboard/page-06.webp","assets/intimacy-docs/storyboard/page-07.webp","assets/intimacy-docs/storyboard/page-08.webp","assets/intimacy-docs/storyboard/page-09.webp","assets/intimacy-docs/storyboard/page-10.webp","assets/intimacy-docs/storyboard/page-11.webp","assets/intimacy-docs/storyboard/page-12.webp","assets/intimacy-docs/storyboard/page-13.webp"]}};const lab=document.getElementById('experiments'),reader=lab.querySelector('.lab-document-reader'),pages=reader.querySelector('.lab-document-pages');function closeReader(){reader.hidden=true;}lab.querySelectorAll('[data-lab-document]').forEach(button=>button.addEventListener('click',()=>{const doc=documents[button.dataset.labDocument];reader.querySelector('.lab-document-title').textContent=doc.title;pages.replaceChildren(...doc.pages.map((src,i)=>{const img=document.createElement('img');img.src=src;img.alt=doc.title+' / 原文件第 '+(doc.first+i)+' 页';img.loading=i?'lazy':'eager';return img;}));reader.hidden=false;pages.scrollTop=0;}));reader.querySelector('.lab-document-back').addEventListener('click',closeReader);lab.querySelectorAll('[data-lab-section]').forEach(b=>b.addEventListener('click',closeReader));lab.addEventListener('close',closeReader);lab.addEventListener('cancel',e=>{if(!reader.hidden){e.preventDefault();closeReader();}});})();
 
 workWindow.querySelectorAll('.other-project .project-back').forEach(button=>button.addEventListener('click',()=>{returnToWork();workWindow.querySelectorAll('.work-nav-item').forEach(item=>{const active=item.dataset.project==='all';item.classList.toggle('is-selected',active);if(active)item.setAttribute('aria-current','page');else item.removeAttribute('aria-current');});}));
 workWindow.querySelectorAll('.other-project').forEach(panel=>{const trigger=workWindow.querySelector('[data-open="'+panel.id+'"]');trigger.addEventListener('click',()=>workWindow.querySelectorAll('.work-nav-item').forEach(item=>{const active=item.dataset.project===panel.id.replace('project-','');item.classList.toggle('is-selected',active);if(active)item.setAttribute('aria-current','page');else item.removeAttribute('aria-current');}));});
@@ -399,7 +359,7 @@ document.querySelectorAll('.other-project').forEach(detail=>{const track=detail.
  function icon(label,symbol,action){const b=document.createElement('button');b.type='button';b.setAttribute('aria-label',label);b.textContent=symbol;b.addEventListener('click',action);return b;}
  function restart(){if(musicSource){musicStartedAt=musicContext.currentTime;musicSource.stop();musicSource=null;musicPlaying=false;startMusic();}else{music.currentTime=0;}}
  transport.append(icon('随机播放（单曲）','⤨',()=>{}),icon('从头播放','⏮',restart),play,icon('从头播放','⏭',restart),icon('单曲循环','↻',()=>{}));
- const center=document.createElement('div');center.className='reference-now-playing';const cover=document.createElement('img');cover.src='assets/meet-unknown-cover.png';cover.alt='Meet the Unknown 封面';cover.className='reference-album-cover';
+ const center=document.createElement('div');center.className='reference-now-playing';const cover=document.createElement('img');cover.src='assets/meet-unknown-cover.webp';cover.alt='Meet the Unknown 封面';cover.className='reference-album-cover';
  const progress=document.createElement('div');progress.className='reference-song-progress';progress.innerHTML='<div class="reference-progress-line"><i></i></div><div class="reference-song-times"><span>0:00</span><span>0:00</span></div>';
  center.append(cover,title,progress);bar.prepend(transport,center);const volText=vol.firstChild;if(volText?.nodeType===3)volText.textContent='';vol.prepend(document.createTextNode('◖'));vol.append(document.createTextNode('◗'));toggle.hidden=true;lyric.classList.add('reference-separate-lyric');
  const format=s=>{s=Number.isFinite(s)?Math.floor(s):0;return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};setInterval(()=>{const total=musicSource?.buffer?.duration||music.duration;const current=musicSource?Math.max(0,musicContext.currentTime-musicStartedAt)%total:music.currentTime;progress.querySelector('i').style.width=(Number.isFinite(total)?current/total*100:0)+'%';const times=progress.querySelectorAll('span');times[0].textContent=format(current);times[1].textContent=format(total);},250);
