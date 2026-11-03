@@ -39,6 +39,8 @@ const volume = document.getElementById('music-volume');
 music.volume = .35;
 let musicContext, musicGain, musicSource, musicLoading;
 let musicPlaying = false;
+let musicHasStarted = false;
+music.addEventListener('playing', () => { musicHasStarted = true; });
 let musicStartedAt = 0;
 let musicUserVolume = music.volume;
 let videoDucking = false;
@@ -74,19 +76,19 @@ async function startMusic() {
 soundToggle.addEventListener('click', () => {
   soundPanel.hidden = !soundPanel.hidden;
   soundToggle.setAttribute('aria-expanded', String(!soundPanel.hidden));
-  if (!musicPlaying && music.paused) startMusic();
+  if (!musicHasStarted && music.paused) startMusic();
 });
 volume.addEventListener('input', () => {
   musicUserVolume = Number(volume.value) / 100;
   syncMusic();
   document.getElementById('volume-value').textContent = `${volume.value}%`;
-  if (!musicPlaying && music.paused) startMusic();
+  if (!musicHasStarted && music.paused) startMusic();
 });
 document.addEventListener('click', event => {
   if (!soundControl.contains(event.target)) {
     soundPanel.hidden = true;
     soundToggle.setAttribute('aria-expanded', 'false');
-    if (!musicPlaying && music.paused) startMusic();
+    if (!musicHasStarted && music.paused) startMusic();
   }
 });
 document.addEventListener('keydown', event => {
