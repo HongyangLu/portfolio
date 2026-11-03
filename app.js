@@ -405,3 +405,15 @@ document.querySelectorAll('.other-project').forEach(detail=>{const track=detail.
  scan();new MutationObserver(records=>{if(records.some(r=>r.addedNodes.length))scan();}).observe(document.body,{childList:true,subtree:true});
  document.querySelectorAll('.work-track-title').forEach(title=>{const status=document.createElement('small');status.className='music-load-status';status.setAttribute('role','status');title.append(status);function update(){status.textContent=music.error?'音乐加载失败，点击播放重试':!music.paused&&music.readyState<3?'音乐正在加载…':music.paused&&music.readyState<2?'点击播放音乐':'';}['loadstart','waiting','canplay','playing','pause','error'].forEach(e=>music.addEventListener(e,update));update();});
 })();
+
+// Handle every music play button directly before cloned/legacy handlers run.
+(()=>{
+ let requestedPause=false;
+ function render(){document.querySelectorAll('.work-music-play').forEach(button=>{button.setAttribute('aria-label',music.paused?'播放背景音乐':'暂停背景音乐');button.setAttribute('aria-pressed',String(!music.paused));});}
+ document.addEventListener('click',event=>{
+  const button=event.target.closest?.('.work-music-play');if(!button)return;
+  event.preventDefault();event.stopImmediatePropagation();musicHasStarted=true;
+  if(!music.paused){requestedPause=true;music.pause();}else{requestedPause=false;music.play().catch(()=>{});}render();
+ },true);
+ music.addEventListener('play',()=>{if(requestedPause)music.pause();render();});music.addEventListener('pause',render);render();
+})();
