@@ -389,3 +389,6 @@ document.querySelectorAll('.other-project').forEach(detail=>{const track=detail.
  }
  const sidebar=document.querySelector('.lab-sidebar');sidebar.append(document.querySelector('.sidebar-signature').cloneNode(true));sidebar.querySelectorAll('[data-lab-section]').forEach((button,i)=>{const dot=button.querySelector('span');dot.textContent='';dot.className='lab-color-dot';dot.style.background=['#ef827d','#8bc77e','#b28ade'][i];});
 })();
+
+// Mobile autoplay may be blocked by low-power mode. Always retain the poster.
+(()=>{const bg=document.querySelector('.homepage-background');if(!bg)return;bg.muted=true;bg.defaultMuted=true;function resume(){if(bg.paused)bg.play().catch(()=>{});}document.addEventListener('pointerdown',resume,{passive:true});document.addEventListener('touchstart',resume,{passive:true});document.addEventListener('visibilitychange',()=>{if(!document.hidden)resume();});resume();})();
